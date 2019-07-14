@@ -6,7 +6,7 @@
 ![SVNStream](./img/SVNStream.PNG)
 
 [Git]
-![GitStream](./img/GitStream.PNG)
+![GItStream](./img/GItStream.PNG)
 
 
 > Git의 무결성 
