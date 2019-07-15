@@ -322,7 +322,8 @@ ca82a6d - Scott Chacon, 6 years ago : changed the version number
 085bb3b - Scott Chacon, 6 years ago : removed unnecessary test
 a11bef0 - Scott Chacon, 6 years ago : first commit
 ```
- - 옵션 참고 [history_preety_format](/reference/history_preety_format.md)
+- 옵션 참고 [history_preety_format](./reference/history_preety_format.md)
+- 옵션 참고 [history_log](./reference/history_log.md)
  - 저자는 원래 작업을 수행한 원작자이고 커밋터는 마지막으로 이 작업을 적용한(저장소에 포함시킨) 사람이다.
  - oneline 옵션과 format 옵션은 --graph 옵션과 함께 사용할 때 더 빛난다. 이 명령은 브랜치와 머지 히스토리를 보여주는 아스키 그래프를 출력한다.
  ```
