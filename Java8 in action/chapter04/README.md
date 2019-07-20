@@ -114,26 +114,17 @@
 - 중간연산 표
 
     연산 | 형식 | 반환 형식 | 연산의 인수 | 함수 디스크립터
-    
     ---- | ---- | ---- | ---- | ----
-    
     filter | 중간 연산 | Stream<T> | Predicate<T> | T -> boolean
-    
     map | 중간 연산 | Stream<T> | Function<T,R> | T -> R
-    
-    limit | 중간 연산 | Stream<T> |  | T -> boolean
-    
+    limit | 중간 연산 | Stream<T> | T -> boolean
     sorted | 중간 연산 | Stream<T> | Comparator<T> | (T, T) -> int)
+    distinct | 중간 연산 | Stream<T> |
     
-    distinct | 중간 연산 | Stream<T> |  | 
 - 최종연산 표
-    
+
     연산 | 형식 | 목적
-    
     ---- | ---- | ----
-    
     foreach | 최종 연산 | 스트림의 각 요소를 소비하면서 람다를 적용. void반환
-    
     count | 최종 연산 | 스트림의 요소 개수를 반환. long 반환
-    
     collect | 최종 연산 | 스트림을 리듀스해서 리스트, 맵, 정수 형식의 컬렉션을 만든다.
