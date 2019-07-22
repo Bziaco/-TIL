@@ -35,7 +35,7 @@ $ git branch testing
 - git checkout 명령으로 다른 브랜치로 이동할 수 있다. 
     ```
     $ git checkout testing
-    ```
+    ``` 
 
     [headFromTestingBranch]
     ![headFromTestingBranch](./img/headFromTestingBranch.PNG)
