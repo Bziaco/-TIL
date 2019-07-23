@@ -57,8 +57,6 @@ public class tran {
 		System.out.println(alphaName);
 		
 		boolean isTraderFromMilan = transactions.stream()
-				/*.map(Transaction::getTrader)
-				.anyMatch(w -> w.getName().equals("Milan"));*/
 				.anyMatch(Transaction -> Transaction.getTrader().getName().equals("Milan"));
 		
 		System.out.println(isTraderFromMilan);
