@@ -137,3 +137,59 @@
 - 하지만 reduce, sum, max 같은 연산은 결과를 누적할 내부상태가 필요하다.
 - sorted나 distinct 같은 연산도 filter나 map처럼 상태없음으로 보일 수 있으나 다르다. 스트림의 요소를 정렬하거나 중복을 제거하려면 과거의 이력을 알고 있어야 하지 때문에 내부상태를 갖는 연산으로 간주 할 수 있다.
 
+<h2>숫자형 스트림</h2>
+
+> 기본형 특화 스트림
+- 세가지 기본형 특화 스트림 제공
+    - IntStream : int 요소 특화
+    - DoubleStream : double 요소 특화
+    - LongStream : long 요소 특화
+- 위 각각의 인터페이스는 sum, max 등과 같이 자주 사용하는 숫자 관련 리듀싱 연산 수행 메서드 제공
+- 필요할 때 다시 객체 스트림으로 복원 기능 제공
+- 특화 스트림은 오직 박싱 과정에서 일어나는 효율성과 관련 있으며 스트림에 추가 기능을 제공하진 않는다.
+
+> 숫자 스트림으로 매핑
+- 특화 스트림으로 변환할 때는 mapToInt, mapToDouble, mapToLong 세가지 메서드를 가장 많이 사용
+- IntStream은 max, min average 등 다양한 유틸리티 메서드도 지원
+
+> 객체 스트림으로 복원하기
+- IntStream으로 변환 후 다시 Dish와 같은 이전 객체 스트림으로 값을 반환하고 싶다면 boxed 메서드를 이용해 특화 스트림을 일반 스트림으로 변환 가능
+    ```
+    //스트림을 숫자 스트림으로 변환
+    IntStream intStream = menu.stream().mapToInt(Dish::getCalories);
+    //숫자 스트림을 스트링으로 변환
+    Stream<Integer> stream = intStream.boxed();
+    ```
+> 기본값: OptionalInt
+- 합계 예제에서는 0이라는 기본값이 있었으므로 별 문제가 없었지만 IntStream에서 최댓값이 0 일경우에는 문제가 생길 수 있다. 이는 어떻게 구별할 수 있을까?
+- 이전에 언급한 Optional을 활용하면 된다. Optional도 OptionalInt, OptionalDouble, OptionalLong 세 가지 기본형 특화 스트림 버전을 제공한다.
+    ```
+    OptionalInt maxCalories = menu.stream()
+                                .mapToInt(Dish::getCalories)
+                                .max();
+    int max = maxCalories.orElse(1);    //값이 없을 때 기본 최댓값 명시
+    ```
+
+> 숫자 범위
+- IntStream과 LongStream에서는 range와 rangeClosed라는 두가지 정적 메서드를 제공
+- 두 메서드 모두 첫번째 인수를 시작값을, 두번째 인수로 종료값을 갖는다.
+- range 메서드는 시작값과 종료값이 결과에 포함되지 않는 반면 rangeClosed는 포함
+
+<h2>스트림 만들기</h2>
+
+> 값으로 스트림 만들기
+- 임의의 수를 인수로 받는 정적 메서드 Stream.of를 이용해서 스트림을 만들 수 있다.
+    ```
+    Stream<String> stream = Stream.of("Java 8", "Lamada", "In", "Action");
+    stream.map(String::toUpperCase).foreach(System.out::pringln);
+
+    //다음처럼 empty 메서드를 이용해서 스트림을 비울 수 있다.
+    Stream<String> emptyStream = Stream.empty();
+    ```
+> 배열로 스트림 만들기
+- 배열을 인수로 받는 정적 메서드 Array.Stream을 이용해서 스트림을 만들 수 있다.
+    ```
+    int[] numbers = {2,3,5,7,11,13};
+    int sum = Arrays.stream(numbers).sum();
+    ```
+
