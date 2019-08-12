@@ -180,3 +180,137 @@ long howManyDishes = menu.stream.counting();
     - 팩토리 메서드 collectingAndThen은 적용할 컬렉터와 변환 함수를 인수로 받아 다른 컬렉터를 반환한다.
     - 반환되는 컬렉터는 기존 컬렉터의 래퍼 역할을 하며 collect의 마지막 과정에서 변환 함수로 자신이 반환하는 값을 매핑한다.
     - 이미 언급했듯이 리듀싱 컬렉터는 절대 Optional.empty()를 반환하지 않으므로 안전한 코드다.
+
+<h2>분할</h2>
+
+- 분할은 분할함수라 불리는 프레디케이트를 분류 함수로 사용하는 특수한 그룹화 기능이다.
+- 분할함수는 불린을 반환하므로 맵의 키 형식을 Boolean이다. 결과적으로 그룹화 맵은 최대(참 또는 거짓) 2개의 그룹으로 분류된다.
+- 분할 함수 예이다.
+
+    ```
+    Map<Boolean, List<Dish>> partitionedMenu = 
+        menu.stream().collect(partitioningBy(Dish::getVegetarian));
+    
+    //결과
+    {false=[pork, beef, chicken, prawns, salmon],
+    true=[french fries, rice, season fruit, pizza]}
+
+    List<Dish> vegetarianDishes = partitionedMenu.get(true);
+    ```
+<h3>분할의 장점</h3>
+
+- 분할함수가 반환하는 참, 거짓 두가지 요소의 스트림 리스트를 모두 유지한다는 것이 분할의 장점이다.
+- 컬렉터를 두 번째 인수로 전달할 수 있는 오버로드된 버전도 있다.
+
+    ```
+    Map<Boolean, Map<Dish.Type, List<Dish>>> vegetarianDishesByType =
+        menu.stream().collect(
+            partitioningBy(Dish::isVegetarian,
+                            groupingBy(Dish::getType)));
+    
+    //결과
+    {false={FISH=[salmon],MEAT=[pork,beef]},
+    true={OTHER=[french fries, rice, season fruit]}}
+    ```
+- 채식요리와 채식이 아닌 요리 각각의 그룹에서 가장 칼로리가 높은 요리를 찾아보자
+    ```
+    Map<Boolean, Map<Dish.Type, List<Dish>>> ex = menu.stream()
+        .collect(
+            partitioningBy(Dish::isVegetarian,
+                collectingAndThen(
+                    maxBy(comparingInt(Dish::getCalories)),
+                    Optional::get)));
+    
+    //결과
+    {false=pork, true=pizza}
+    ```
+
+<h2>Collector 인터페이스</h2>
+
+- Collector 인터페이스는 리듀싱 연산(즉, 컬렉터)을 어떻게 구현할지 제공하는 메서드 집합으로 구성된다.
+- 다음 코드는 Collector 인터페이스의 시그너처와 다섯 개의 메서드 정의를 보여준다.
+
+    ```
+    public interface Collector<T, A, R> {
+        Supplier<A> supplier();
+        BiConsumer<A, T> accumulator();
+        Function<A, R> finisher();
+        BinaryOperation<A> combine();
+        Set<Characteristics> characteristics();
+    }
+    ```
+
+    - T는 수집될 스트림 항목의 제네릭 형식이다.
+    - A는 누적자, 즉 수집 과정에서 중간 결과를 누적하는 객체의 형식이다.
+    - R은 수집 연산 결과 객체의 형식이다.
+    - 예를 들어 Stream<T>의 모든 요소를 List<T>로 수집하는 ToListCollector<T>라는 클래스를 구현 할 수 있다.
+        ```
+        public class ToListCollector<T> implements 
+                 Collector<T, List<T>, List<T>>
+        ```
+
+<h3>Collector 인터페이스의 메서드 살펴보기</h3>
+
+> supplier 메서드 : 새로운 결과 컨테이너 만들기
+- supplier 메서드는 빈 결과로 이루어진 Supplier를 반환해야 한다. 즉 파라미터가 없는 함수이다.
+
+    ```
+    public Supplier<List<T>> supplier() {
+        return () -> new ArrayList<T>();
+    }
+
+    //생성자 레퍼런스로 전달하는 방법
+    public Supplier<List<T>> supplier() {
+        return ArrayList::new;
+    }
+    ```
+
+> accumulator 메서드 : 결과 컨테이너에 요소 추가하기
+
+- accumalator 메서드는 리듀싱 연산을 수행하는 함수를 반환한다. 스트림에서 n번째 요소를 탐색할 때 두 인수, 즉 누적자와 n번째 요소를 함수에 적용한다.
+- 함수의 반환값은 void, 즉 요소를 탐색하면서 적용하는 함수에 의해 누적자 내부 상태가 바뀌므로 누적자가 어떤 값일지 단정할 수 없다.
+    ```
+    public BiConsumer<List<T>, T> accumulator() {
+        return (list, item) -> list.add(item);
+    }
+
+    //메서드 레퍼런스
+    public BiConsumer<List<T>, T> accumulator() {
+        return List::add;
+    }
+    ```
+
+> finisher 메서드 : 최종 변환값을 결과 컨테이너로 적용하기
+
+- finisher 메서드는 스트림 탐색을 끝내고 누적자 객체를 최종 결과로 변환하면서 누적 과정을 끝낼 때 호출할 함수를 반환해야 한다.
+- 누적객체가 이미 최종인 경우 항등함수를 반환한다.
+    ```
+    public Function<List<T>, List<T>> finisher() {
+        return Function.identity();
+    }
+    ```
+
+> combine 메서드 : 두 결과 컨테이너 병합
+
+- combine는 스트림의 서로 다른 서브파트를 병렬로 처리할 때 누적자가 이 결과를 어떻게 처리할지 정의한다.
+- 스트림의 두번째 서브파트에서 수집한 항목 리스트를 첫 번째 서브파트 결과 리스트의 뒤에 추가하면 된다.
+    ```
+    public BinaryOperation<List<T>> combine() {
+        return (list1, list2) -> {
+            list1.addAll(list2);
+            return list1;
+        }
+    }
+    ```
+
+> Characteristics 메서드
+
+- Characteristics 메서드는 컬렉터의 연산을 정의하는 Characteristics 형식의 불변 집합을 반환한다.
+- Characteristics는 스트림을 병렬로 리듀스할 것인지 그리고 병렬로 리듀스한다면 어떤 최적화를 선택해야 할지 힌트를 제공한다.
+- Characteristics는 다음 세 항목을 포함하는 열거형이다.
+    - UNORDERED
+        - 리듀싱 결과는 스트림의 요소의 방문 순서나 누적 순서에 영향을 받지 않는다.
+    - CONCURRENT
+        - 다중 스레드에서 accumulator 함수를 동시에 호출할 수 있으며 이 컬렉터는 스트림의 병렬 리듀싱을 수행할 수 있다.
+    - IDENTITY_FINISH
+        - finisher 메서드가 반환하는 함수는 단순히 identity를 적용할 뿐이므로 이를 생략할 수 있다. 따라서 리듀싱 과정의 최종 결과로 누적자 객체를 바로 사용할 수 있다.
