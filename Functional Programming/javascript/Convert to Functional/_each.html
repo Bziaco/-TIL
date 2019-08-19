@@ -67,6 +67,10 @@
       return list;
     }
 
+    console.log(_each(devices, function(val){
+      return val.name;
+    }));
+
     console.log(_filter1(devices, function(val) { return val.sales > 30 }))
     console.log(_filter2(devices, function(val) { return val.name == 'IBM network server'}))
   </script>
