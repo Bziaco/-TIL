@@ -188,3 +188,189 @@
     
     - 실행 어라운드
         - 매번 같은 준비, 종료 과정을 반복적으로 수행하는 코드가 있다면 이를 람다로 변환할 수 있다. 준비, 종료 과정을 처리하는 로직을 재사용함으로써 코드 중복을 줄일 수 있다.
+
+
+
+<h2>8.2 람다로 객체지향 디자인 패턴 리팩토링하기</h2>
+
+- 다양한 패턴을 유형별로 정리한 것이 디자인 팬턴이다.
+- 디자인 패턴은 공통적인 소프트웨어 문제를 설계할 때 재사용할 수 있는, 검증된 청사진을 제공한다.
+- 이 절에서는 5가지 패턴을 살펴본다.
+    - 전략(strategy)
+    - 템플릿 메서드(template method)
+    - 옵저버(observer)
+    - 의무 체인(chain of responsibility)
+    - 팩토리(factory)
+
+<h3>8.2.1 전략</h3>
+
+- 전략 패턴은 한 유형의 알고리즘을 보유한 상태에서 런타임에 적절한 알고리즘을 선택하는 기법이다.
+- 다양한 기준을 갖는 입력값을 검증하거나 다양한 파싱 방법을 사용하거나 입력 형식을 설정하는 등 다양한 시나리오에 전략 패턴을 활용할 수 있다.
+- 전략 패턴은 세 부분으로 구성된다.
+    - 알고리즘을 나타내는 인터페이스(Strategy 인터페이스)
+    - 다양한 알고리즘을 나타내는 한 개 이상의 인터페이스 구현(ConcreteStrategyA, ConcreteStrategyB 같은 구체적인 구현 클래스)
+    - 전략 객체를 사용하는 한 개 이상의 클라이언트
+- 예를 들어 오직 소문자 또는 숫자로 이루어져야 하는 등 텍스트 입력이 다양한 조건에 맞게 포맷되어 있는지 검증하는 예제
+    ```
+    // 인터페에스 구현
+    public interface ValidationStrategy {
+        boolean execute(String s);
+    }
+
+    // 정의한 인터페이스를 구현하는 클래스를 2개
+    public class IsAllLowerCase implements ValidationStrategy {
+        public boolean execute(String s) {
+            return s.matchs("[a-z]+");
+        }
+    }
+
+    public class IsNumeric implements ValidationStrategy {
+        public boolean execute(String s) {
+            return s.matches("₩₩d+");
+        }
+    }
+
+    // 위에서 구현한 클래스를 다양한 검증 전략으로 활용
+    public class Validator {
+        private final ValidationStrategy strategy;
+
+        public Validator(ValidationStrategy v) {
+            this.strategy = v;
+        }
+
+        public boolean validate(String s) {
+            return strategy.execute(s);
+        }
+    }
+
+    Validator numericValidator = new Validator(new IsNumeric());
+    boolean b1 = numericValidator.validate("aaaa");
+    Validator lowerCaseValidator = new Validator(new IsAllLowerCase);
+    boolean b2 = lowerCaseValidator.validate("bbbb");
+    ```
+
+> 람다 표현식 사용
+- ValidationStrategy는 함수형 인터페이스며 Predicate<String>과 같은 함수 디스크립터를 갖는다. 따라서 다양한 전략을 구현하는 새로운 클래스를 구현할 필요 없이 람다 표현식을 직접 전달하면 코드가 간결해진다.
+    ```
+    Validator numericValidator = 
+        new Validator((String s) -> s.matches("[a-z]+"));
+    boolean b1 = numericValidator.validate("aaaa");
+    validator lowerCaseValidator =
+        new Validator((String s) -> s.matches("₩₩d+"));
+    boolean b2 = lowerCaseValidator.validate("bbbb");
+    ```
+- 위 코드처럼 람다 표현식을 이용하면 전략 디자인 패턴에서 발생하는 자잘한 코드를 제거할 수 있다.
+- 람다 표현식은 코드조각을 캡슐화한다. 즉, 람다 표현식으로 전략 디자인 패턴을 대신할 수 있다.
+
+<h2>8.2.2 템플릿 메서드</h2>
+
+- 알고리즘 개요를 제시한 다음에 알고리즘 일부를 고칠 수 있는 유연함을 제공해야 할 때 템플릿 메서드 디자인 패턴을 사용한다. 즉, '이 알고리즘을 사용하고 싶은데 그대로는 안되고 조금 고쳐야 하는 상황'에 적합하다.
+
+- 간단한 온라인 뱅킹 애플리케이션을 구현한다고 가정한다. 은행마다 다양한 온라인 뱅킹 애플리케이션을 사용하며 동작 방법도 다르다. 다음은 온라인 뱅킹 애플리케이션 동작을 정의하는 추상 클래스다.
+    ```
+    abstract class onlineBanking {
+        public void processCustomer(int id) {
+            Customer c = Database.getCustomerWithId(id);
+            makeCustomerHappy(c);
+        }
+        abstract void makeCustomHappy(Customer c);
+    }
+    ```
+    - processCustomer 메서드는 온라인 뱅킹 알고리즘이 해야 할 일을 보여준다. 우선 고객의 ID를 만족한 다음 각각의 지점은 onlineBanking 클래스를 상속받아 makeCustomerHappy 메서드가 원하는 동작을 수행하도록 구현할 수 있다.
+
+> 람다 표현식 사용
+- 이전에 정의한 makeCustomerHappy의 메서드 시그너처와 일치하도록 Consumer<Customer> 형식을 갖는 두 번째 인수를 processCustomer에 추가한다.
+    ```
+    public void processCustomer(int d, Consumer<Customer> makeCustomerHappy) {
+        Customer c = Database.getCustomerWithId(id);
+        makeCustomerHappy.accept(c);
+    }
+
+    // 람다 표현식을 전달해서 동작을 추가
+    new OnlineBankingLamda().processCustomer(1337, (Customer c) -> 
+        System.out.println("Hello " + c.getName);
+    )
+    ```
+    
+<h2>8.2.3 옵저버</h2>
+
+- 어떤 이벤트가 발생했을 때 한 객체가 다른 객체리스트에 자동으로 알림을 보내야 하는 상황에서 사용한다.
+- 예를 들어 주식의 가격 변동에 반응하는 다수의 거래자 예제에서도 옵저버 패턴을 사용할 수 있다.
+- 다양한 신문 매체가 뉴스 트윗을 구독하고 있으며 특정 키워드를 포함하는 트윗이 등록되면 알림을 받고 싶어 하는 예제이다. 우선 다양한 옵저버를 그룹화할 Observer 인터페이스가 필요하다. Observer 인터페이스는 새로운 트윗이 있을 때 주제가 호출할 수 있도록 notify라고 하는 하나의 메서드를 제공한다.
+
+    ```
+    // 옵저버 interface 정의
+    interface Observer {
+        void notify(String tweet);
+    }
+
+    // 다양한 키워드에 다른 동작을 수행할 수 있는 여러 옵저버 정의
+    class NYTimes implements Observer {
+        public void notify(String tweet) {
+            if(tweet != null && tweet.contains("money")) {
+                System.out.println("Breaking news in NY! " + tweet);
+            }
+        }
+    }
+
+    class Guadian implements Observer {
+        public void notify(String tweet) {
+            if(tweet != null && tweet.contains("queen")) {
+                System.out.println("Yet another news in London... " + tweet);
+            }
+        }
+    }
+
+    class LeMonde implements Observer {
+        public void notify(String tweet) {
+            if(tweet != null && tweet.contains("wine")) {
+                System.out.println("Today cheese, wine and news! " + tweet);
+            }
+        }
+    }
+
+    // 주제 구현
+    interface Subject {
+        void registerObserver(Observer o);
+        void notifyObservers(String tweet);
+    }
+
+    // 주제는 resisterObserver 메서드로 새로운 옵저버를 등록한 다음에 notifyObservers 메서드로 트윗의 옵저버에 이를 알린다.
+    class Feed implements Subject {
+        private final List<Observer> observers = new ArrayList<>();
+
+        public void resisterObserver(Observer o) {
+            this.observers.add(o);
+        }
+
+        public void notifyObservers(String tweet) {
+            observers.foreach(o -> o.notify(tweet));
+        }
+    }
+
+    // 구현
+    Feed f = new Feed();
+    f.registerObserver(new NYTimes());
+    f.registerObserver(new Guardian());
+    f.registerObserver(new LeMonde());
+    f.notifyObservers("Hello");
+    ```
+
+> 람다 표현식 사용하기
+- Observer 인터페이스를 구현하는 모든 클래스는 하나의 메서드 notify를 구현했다. 즉, 트윗이 도착했을 때 어떤 동작을 수행할 것인지 감싸는 코드를 구현한 것이다. 세 개의 옵저버를 명시적으로 인스턴스화하지 않고 람다 표현식을 직접 전달해서 실행할 동작을 지정할 수 있다.
+    ```
+    f.registerObserver((String s)-> {
+        if(tweet != null && tweet.contains("wine")) {
+            System.out.println("Today cheese, wine and news! " + tweet);
+        }
+    })
+
+    f.registerObserver((String s)-> {
+        if(tweet != null && tweet.contains("queen")) {
+            System.out.println("Yet another news in London... " + tweet);
+        }
+    })
+    ```
+- 항상 람다 표현식을 사용해야 하는 것은 아니다. 위 예제는 실행동작이 비교적 간단하므로 람다 표현식으로 불필요한 코드를 제거하는 것이 바람직하다. 그러나 옵저버가 상태를 가지며 여러 메서드를 정의하는 등 복잡하다면 람다 표현식 보다 기존의 클래스 구현 방식을 고수하는 것이 바람직할 수도 있다.
+
+    
