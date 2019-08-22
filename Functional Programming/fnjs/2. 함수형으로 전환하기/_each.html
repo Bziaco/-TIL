@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Counter</title>
+</head>
+<body>
+  
+  <script>
+    var devices = [
+        {id: 1, group: 'microsoft', name: 'galaxy note',        sales: 87},
+        {id: 2, group: 'microsoft', name: 'window 10',          sales: 129},
+        {id: 3, group: 'microsoft', name: 'galaxy watch',       sales: 45},
+        {id: 4, group: 'apple',     name: 'mac pro',            sales: 58},
+        {id: 5, group: 'apple',     name: 'ipad',               sales: 43},
+        {id: 6, group: 'apple',     name: 'iphone',             sales: 76},
+        {id: 7, group: 'apple',     name: 'apple watch',        sales: 22},
+        {id: 8, group: 'IBM',       name: 'IBM network server', sales: 15},
+        {id: 9, group: 'IBM',       name: 'IBM firewall',       sales: 46},
+    ]
+    
+    function _filter1(list, predi) {
+      var new_list = [];
+      for(var i = 0; i < list.length; i++) {
+        if(predi(list[i])) {
+          new_list.push(list[i]);
+        }
+      }
+
+      return new_list;
+    }
+
+    function _map1(list, mapper) {
+      var new_list = [];
+      for(var i = 0; i < list.length; i++) {
+        new_list.push(mapper(list[i]));
+      }
+
+      return new_list;
+    }
+
+
+    function _filter2(list, predi) {
+      var new_list = [];
+      _each(list, function(val) {
+        if(predi(val)) new_list.push(val);
+      })
+
+      return new_list;
+    }
+
+    function _map2(list, mapper) {
+      var new_list = [];
+      _each(list, function(val) { 
+        new_list.push(mapper(val));
+       });
+
+      return new_list;
+    }
+
+
+    function _each(list, iter) {
+      for(var i = 0; i < list.length; i++) {
+        iter(list[i]);
+      }
+
+      return list;
+    }
+
+    console.log(_each(devices, function(val){
+      return val.name;
+    }));
+
+    console.log(_filter1(devices, function(val) { return val.sales > 30 }))
+    console.log(_filter2(devices, function(val) { return val.name == 'IBM network server'}))
+  </script>
+</body>
+</html>
