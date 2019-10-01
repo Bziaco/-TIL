@@ -172,3 +172,182 @@ ColorPoint p2 = new ColorPoint(1,2,Color.BLUE);
 
 - p1과 p2, p2와 p3는 true지만 p1과 p3는 false를 리턴한다. 이는 색상까지 고려했기 때문이다.
 - 또한 이 방식은 재귀에 빠져 StackOverflowError를 일으킬 수 있다.
+- 구체 클래스를 확장해 새로운 값을 추가하면서 equals 규약을 만족시킬 방법은 존재하지 않는다. 그렇다면 해법은 무엇일까? equals 안의 instanceof 검사를 getClass 검사로 바꾸면 규약도 지키고 값도 추가하면서 구체 클래스를 상속할 수 있는 방법이 있을 수 있다고 생각이 든다.
+
+```
+@Override
+public boolean equals(Object o) {
+    if (o == null || o.getClass != getClass()) {
+        return false;
+    }
+    Point p = (Point) o;
+    return p.x == x && p.y == y;
+}
+```
+
+- 이번 equals는 같은 구현 클래스의 객체와 비교할때만 true를 반환한다. 그러나 여전히 추이성에 어긋난다.
+- Point의 하위 클래스는 정의상 여전히 Point이므로 어디서든 Point로써 활용될 수 있어야 한다. 그러나 이 방식에서는 그렇지 못하다.
+- 예를 들어 주어진 점이 (반지름이 1인) 단위 원 안에 있는지를 판별하는 메서드가 필요하다고 가정해 보자. 다음은 이를 구현한 코드이다.
+
+```
+private static final Set<Point> unitCircle = Set.of(
+    new Point(1,0), new Point(0,1),
+    new Point(-1,0), new Point(0,-1));
+
+public static boolean onUnitCircle(Point p) {
+    return unitCircle.contatin(p);
+}
+```
+
+- 이 기능을 구현하는 가장 빠른 방법은 아니지만 이제 값을 추가하지 않는 방식으로 Point를 확장하겠다. 만들어진 인스턴스의 개수를 생성자에서 세보도록 하자.
+
+```
+public class CounterPoint extends Point {
+    private static final AtomicInteger counter = new AtomicInteger();
+
+    public CounterPoint(int x, int y) {
+        super(x,y);
+        counter.incrementAndGet();
+    }
+    public static int numberCreated() { return counter.get(); }
+}
+```
+
+- 리스코프 치환 원칙(Liskov substitution princicple)에 따르면 어떤 타입에 있어 중요한 속성이라면 그 하위 타입에서도 마찬가지로 중요하다. 따라서 그 타입의 모든 메서드가 하위 타입에서도 똑같이 잘 작동해야 한다.
+
+- 그러나 CounterPoint의 인스턴스를 onUnitCircle 메서드에 넘기면 false를 반환할 것이다. Point 클래스의 equals를 getClass를 사용해 작성했기 때문이다.
+
+- 이유는 컬렉션 구현체에서 주어진 원소를 담고 있는지를 확인하는 방법에 있다. onUnitCircle에서 사용한 Set을 포함하여 대부분의 컬렉션은 이 작업에 equals 메서드를 이용하는데 CounterPoint의 인스턴스는 어떤 Point와도 같을 수 없기 때문이다.
+
+- 반면 instanceof 기반으로 구현했다면 제대로 작동할 것이다.
+
+- 구체 클래스의 하위 클래스에서 값을 추가할 방법은 없지만 상속 대신 컴포지션을 사용하여 우회하는 방법이 있다.
+
+- Point를 상속하는 대신 Point를 ColorPoint의 private 필드로 두고 ColorPoint와 같은 위치의 일반 Point를 반환하는 뷰(view) 메서드를 public으로 추가하는 방식이다.
+
+```
+package effectivejava3.chapter03.item10;
+
+import java.util.Objects;
+
+public class ColorPoint {
+	private final Point point;
+	private final Color color;
+
+	public ColorPoint(int x, int y, Color color) {
+		point = new Point(x,y);
+		this.color = Objects.requireNonNull(color);
+	}
+
+	public Point asPoint() {
+		return point;
+	}
+
+	@Override
+	public boolean  equals(Object o) {
+		if(!(o instanceof ColorPoint)) {
+			return false;
+		}
+
+		ColorPoint cp = (ColorPoint) o;
+		return cp.point.equals(point) && cp.color.equals(color);
+	}
+}
+```
+
+- 자바 라이브러리에 있는 java.sql.Timestamp는 java.util.Date를 확장한 후 nanoseconds필드를 추가 했다. 그 결과 Timestamp의 equals는 대칭성을 위배한다. 이와 같은 설계는 실수이니 절대 따라 해서는 안된다.
+
+> 추상 클래스의 하위 클래스에서라면 equals 규약을 지키면서도 값을 추가 할 수 있다.
+
+- 상위 클래스를 직접 인스턴스로 만드는게 불가능 하다면 지금까지 이야기한 문제들은 일어나지 않는다.
+
+<br>
+
+<h3>consistency(일관성)</h3>
+
+- 두 객체가 같다면 (어느 하나 혹은 두 객체 모두가 수정되지 않는 한) 영원히 같아야 한다.
+
+- equals가 한번 같다고 한 객체와는 영원히 같다고 답하고 다르다고 한 객체와는 영원히 다르다고 답하도록 만들어야 한다.
+
+- java.net.URL의 equals는 주어진 URL과 매핑된 호스트의 아이피주소를 이용해 비교하는데 그 결과가 항상 같다고 보장할 수 없다. URL의 equals 구현은 실수이니 절대 따라해서는 안된다.
+
+- 이러한 문제를 피하려면 equals는 항시 메모리에 존재하는 객체만을 사용한 결정적 계산만 수행해야 한다.
+
+<br>
+
+<h3>null-아님</h3>
+
+- 모든 객체가 null과 같지 않아야 한다는 뜻이다.
+
+- 아래는 null인지 확인 하는 코드 예제이다.
+
+```
+@Override
+public boolean equals(Object o) {
+    if( o == null)
+        return false;
+}
+```
+
+- 하지만 이러한 검사는 필요치 않다. 아래 코드처럼 형변환에 앞서 instanceof 연산자로 입력 매개변수가 올바른 타입인지 검사하는 쪽이 낫다
+
+```
+public boolean equals(Object o) {
+    if( o instanceof MyType)
+        return false;
+    MyType mt = (MyType) o;
+    ...
+}
+```
+
+- equals가 타입을 확인하지 않으면 잘못된 타입이 인수로 주어졌을 때 ClassCastException을 던져 일반 규약을 위배하게 된다.
+
+<br>
+
+<h2>equals 메서드 구현방법 단계별 정의</h2>
+
+<h3>1. == 연산자를 사용해 입력이 자기 자신의 참조인지 확인한다.</h3>
+
+<h3>2. instanceof 연산자로 입력이 올바른 타입인지 확인한다.</h3>
+
+- 가끔 euqlas가 정의된 클래스가 특정 인터페이스 인경우도 있다. 이런 인터페이스를 구현한 클래스라면 equals에서 해당 인터페이스를 사용해야한다. Set, List, Map, Map.Entry등의 컬렉션 인터페이스들이 여기해 해당한다.
+
+<h3>3. 입력을 올바른 타입으로 형변환 한다.</h3>
+
+<h3>4. 입력 객체와 자기 자신의 대응되는 핵심 필드들이 모두 일치하는지 하나씩 검사한다.</h3>
+
+<br>
+
+<h2>주의 사항</h2>
+
+> float와 double을 제외한 기본 타입 필드는 == 연산자로 비교
+
+- 참조타입 필드는 각각의 equals 메서드로 비교하며 float과 double 필드는 Float.NaN, -0.0f, 특수한 부동소수값 등을 다뤄야 하기 때문에 각각 Float.compare(float, float)와 Double.compare(double, double)로 비교한다.
+
+- Float.equals와 Double.equals 메서드를 대신 사용가능하나 오토박싱을 수반할 수 있어 성능이 좋지 않다.
+
+<br>
+
+> null을 정상값으로 취급하는 참조 타입 필드가 존재하는 경우
+
+- 이런 필드는 정적 메서드인 Objects.equals(Object, Object)로 비교해 NullPointerException 발생을 예방한다.
+
+<br>
+
+> 비교할 필드 순서에 따라 equals 성능을 좌우하기도 한다.
+
+- 최상의 성능을 바란다면 다를 가능성이 더 크거나 비교하는 비용이 싼 필드를 먼저 비교한다.
+
+<br>
+
+> equals를 다 구현 했다면 대칭적, 추이성, 일관적인가를 자문해보자
+
+- 반사성과 null-아님은 거의 없기에 대칭성, 추이성, 일관적인 것만 비교해도 된다.
+
+<br>
+
+> equals를 재정의할 땐 hashcode도 반드시 재정의 하자
+
+<br>
+
+> Object 외의 타입을 매개변수로 받은 equals 메서드는 선언하지 말자
