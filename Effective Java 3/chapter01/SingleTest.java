@@ -1,3 +1,4 @@
+import java.util.Collections;
 import java.util.function.Supplier;
 
 public class SingleTest {
@@ -13,5 +14,6 @@ public class SingleTest {
 
         String name = Singleton3.INSTANCE.getName();
 
+        Collections.emptyList();
     }
 }
