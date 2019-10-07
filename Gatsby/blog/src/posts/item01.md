@@ -3,6 +3,8 @@ title: "The Great Effectvie Java 3/E item01"
 date: "2019-09-24"
 ---
 
+![Grass](./grass.jpg)
+
 <h1>생성자 대신 팩터리 메서드를 고려하라</h1>
 
 <h2>정적 팩터리 메서드가 생성자보다 좋은 다섯가지</h2>
