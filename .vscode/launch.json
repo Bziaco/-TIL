@@ -1,0 +1,89 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+        "type": "java",
+        "name": "CodeLens (Launch) - CaseInsensitiveStringTest",
+        "request": "launch",
+        "mainClass": "CaseInsensitiveStringTest",
+        "projectName": "TIL_deb84d0b"
+    },
+    {
+        "type": "java",
+        "name": "CodeLens (Launch) - CaseInsensitiveString",
+        "request": "launch",
+        "mainClass": "CaseInsensitiveString",
+        "projectName": "TIL_deb84d0b"
+    },
+    {
+        "type": "java",
+        "name": "CodeLens (Launch) - EqualsSample",
+        "request": "launch",
+        "mainClass": "EqualsSample",
+        "projectName": "TIL_deb84d0b"
+    },
+    {
+        "type": "java",
+        "name": "CodeLens (Launch) - CacheSample",
+        "request": "launch",
+        "mainClass": "CacheSample",
+        "projectName": "TIL_deb84d0b"
+    },
+    {
+        "type": "java",
+        "name": "CodeLens (Launch) - StringTest",
+        "request": "launch",
+        "mainClass": "StringTest",
+        "projectName": "TIL_deb84d0b"
+    },
+    {
+        "type": "java",
+        "name": "CodeLens (Launch) - SpellChecker",
+        "request": "launch",
+        "mainClass": "SpellChecker",
+        "projectName": "TIL_deb84d0b"
+    },
+    {
+        "type": "java",
+        "name": "CodeLens (Launch) - UtilClass",
+        "request": "launch",
+        "mainClass": "UtilClass",
+        "projectName": "TIL_deb84d0b"
+    },
+    {
+        "type": "java",
+        "name": "CodeLens (Launch) - SingleTest",
+        "request": "launch",
+        "mainClass": "SingleTest",
+        "projectName": "TIL_deb84d0b",
+        "vmArgs": "--enable-preview"
+    },
+    {
+        "type": "java",
+        "name": "CodeLens (Launch) - MyBlog",
+        "request": "launch",
+        "mainClass": "MyBlog"
+    },
+    {
+        "type": "java",
+        "name": "CodeLens (Launch) - Blog",
+        "request": "launch",
+        "mainClass": "Blog"
+    },
+    {
+        "type": "java",
+        "name": "CodeLens (Launch) - Bolg",
+        "request": "launch",
+        "mainClass": "Bolg"
+    },
+    {
+        "type": "java",
+        "name": "Debug (Launch) - Current File",
+        "request": "launch",
+        "mainClass": "${file}"
+    }
+]
+}
