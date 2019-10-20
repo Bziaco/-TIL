@@ -261,6 +261,10 @@ public class ColorPoint {
 
 - 상위 클래스를 직접 인스턴스로 만드는게 불가능 하다면 지금까지 이야기한 문제들은 일어나지 않는다.
 
+- 추상 클래스를 인스턴스화 하지 못하기 때문이다.
+
+- Date 클래스를 확장하여 구현된 Timestamp, LocalDate, TimeZone를 예로 들자면 Date 클래스는 추상클래스 이므로 인스턴스화를 할 수 없다. 그렇기 때문에 추이성에서 언급한 문제들은 일어나지 않는다. 
+
 <br>
 
 <h3>consistency(일관성)</h3>
@@ -351,3 +355,14 @@ public boolean equals(Object o) {
 <br>
 
 > Object 외의 타입을 매개변수로 받은 equals 메서드는 선언하지 말자
+
+<br>
+
+---
+
+<h2>Conclusion</h2>
+
+- 꼭 필요한 경우가 아니면 equals를 재정의 할 필요가 없다. 기본적으로 Object의 equals가 대부분의 비교를 정확히 수행한다.
+
+- 재정의를 해야 하는 경우라면 핵심 필드를 모두를 빠짐없이 다섯가지 규약을 지켜가며 비교해야 한다.
+
