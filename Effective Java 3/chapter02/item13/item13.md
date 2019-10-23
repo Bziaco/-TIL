@@ -269,6 +269,10 @@ public Yum(Yum yum) {...};
 public static Yum getInstance(Yum yum) {...};
 ```
 
+#### 3.6 Shallow Copy vs Deep Copy
+
+- [Shallow Copy vs Deep Copy](https://zealous-wozniak-a49a78.netlify.com/blog/compareOfShallowAndDeep)
+
 #### 3.5.3 장점
 
 - 언어 모순적이고 위험한 객체 생성 메커니즘을 사용하지 않는다. (super.clone())
