@@ -112,9 +112,9 @@ public static <E extends Comparable<E>> E max(Collection<E> c);
 `컬렉션에서 최댓값을 반환한다. - 재귀적 타입 한전 사용`
 
 ```js
-public static <E extneds Comparable<E>> E max(Collection<E> c) {
+public static <E extends Comparable<E>> E max(Collection<E> c) {
     if (c.isEmpty()) {
-        throw ....
+        throw new IllegalArgumentException("컬렉션이 비어 있습니다.");
     }
 
     E result = null;
@@ -123,12 +123,40 @@ public static <E extneds Comparable<E>> E max(Collection<E> c) {
             result = Objects.requireNonNull(e);
         }
     }
+
+    return result;
 }
 ```
 
 > 이 메서드에 빈 컬렉션을 건네면 IllegalArgumentException을 던지니, Optional<E>를 반환하도록 고치는 편이 나을 것이다.
 
+`Optional 처리`
 
+```js
+public static <E extends Comparable<E>> Optional<E> max(Collection<E> c) {
+    if (c.isEmpty()) {
+        throw new IllegalArgumentException("컬렉션이 비어 있습니다.");
+    }
+
+    E result = null;
+    for (E e : c) {
+        if (result == null || e.compareTo(result) > 0) {
+            result = Objects.requireNonNull(e);
+        }
+    }
+    
+    return Optional.ofNullable(result);
+}
+```
+```js
+public static void main(String[] args) {
+    Set<Integer> set1 = Set.of(1,2,3,4,5,6,7,8,9,10,11);
+    
+    System.out.println(CollectionMax.max(set1).get());
+}
+
+// 출력결과 : 11
+```
 <br>
 
 ## *Conclusion*
