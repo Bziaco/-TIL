@@ -102,7 +102,7 @@ groupingBy가 반환하는 수집기가 리스트 외의 값을 갖는 맵을 �
 toSet() 대신 toCollection(collectionFactory)를 건내는 방법도 있다. 예상할 수 있듯이 이렇게 하면 리스트나 집합 대신 컬렉션을 값으로 갖는 맵을 생성한다. 다운스트림 수집기로 counting()을 건네는 방법도 있다. 이렇게 하면 각 카테고리(키)를 해당 카테고리에 속하는 원소의 개수와 매핑한 맵을 얻는다
 
 ```js
-Map < String, (Long > freq = words.collect(groupingBy(String::toLowerCase, counting())));
+Map < String, Long > freq = words.collect(groupingBy(String::toLowerCase, counting())));
 ```
 
 groupingBy의 세번째 버전은 다운스트림 수집기에 더해 맵 팩터리도 지정할 수 있게 해준다. 참고로 이 메서드는 점층적 인수 목록 패턴(telescoping argument list pattern)에 어긋난다. 즉 mapFactory 매개변수가 downStream 매개변수보다 앞에 놓인다. 이 버전의 groupingBy를 사용하면 맵과 그 안에 담긴 컬렉션의 타입을 모두 지정할 수 있다. 예컨대 값이 TreeSet인 TreeMap을 반환하는 수집기를 만들 수 있다.
